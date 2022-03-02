@@ -1,0 +1,40 @@
+SERVER: run only one time
+nn = NeuralNetwork()
+nn.get_parameters()
+
+Client:
+#User Sign up: 
+user = Client(user_id)
+user.generate_keys()
+
+#Enter sample:
+user.receive_sample(sample_data) 
+
+#Encode sample:
+encoded_sample = user.encode_sample(user.sample) 
+
+#Encrypt sample:
+encrypted_sample = user.encrypt_sample(encoded_sample)
+
+>>>>Send encrypted_sample to server
+
+
+SERVER: after receiving encrypted_sample from client
+
+predict = nn.predict(encrypted_sample)
+
+
+>>>Send predict to client
+
+CLIENT: after receiving predict from server
+
+#Decrypt
+decrypted = user.decrypt_sample(predict)
+
+#Decode
+decoded = crt_inverse(decrypted)
+
+#Get result
+user.result = np.argmax(predict, axis=1)
+
+
