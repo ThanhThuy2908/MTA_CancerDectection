@@ -1,0 +1,500 @@
+\documentclass[A4paper,12pt]{article}
+
+\usepackage{amsmath,amssymb,amstext,amsfonts} % Lots of math symbols and environments
+\usepackage{listings}
+
+
+\newtheorem{thm}{Theorem}
+\newtheorem{de}{Defination}
+\newtheorem{ex}{Example}
+\newtheorem{lem}{Lemma}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{corollary}{Corollary}[theorem]
+\newtheorem{lemma}[theorem]{Lemma}
+\makeatletter
+\newcommand{\xLeftrightarrow}[2][]{\ext@arrow 0099\Leftrightarrowfill@{#1}{#2}}
+%\makeatother
+
+%opening
+\title{}
+\author{}
+
+\begin{document}
+\newtheorem{definition}{Definition}[section]
+\title{\textbf{ZERO - THE FUNNIEST NUMBER IN CRYPTOGRAPHY}}
+\author{Nguyen Thi Thanh Thuy\\ \centering{Military Technical Academy}}
+\date{January 4, 2022}
+\maketitle
+
+\newpage
+\tableofcontents
+\newpage
+\listoffigures
+
+\newpage
+
+\begin{abstract}
+Here is abstract
+\end{abstract}
+
+
+\section{Introduction}
+Here is Introduction
+hello
+\newpage
+\addtocontents{toc}{\setcounter{tocdepth}{1}}
+\section{Background}
+
+%\addtocontents{toc}{\setcounter{tocdepth}{2}}
+%\addcontentsline{toc}{subsection}{Basic notation}
+\subsection{Basic notation}
+\subsection{Lattice}
+
+\addcontentsline{toc}{subsubsection}{Definition}
+\subsubsection{Definition}
+\subsubsection{Hard problem in lattice}
+\subsection{LWE-based encryption}
+\subsection{RLWE-based encryption}
+\newpage
+
+\section{Homomorphic Encryption}
+Within the scope of this project, we will focus on BFV scheme that based on RLWE-based encryption.
+\subsection{Definition}
+%HE
+\begin{definition}[Homomorphic Encryption] A homomorphic encryption scheme is defined as follows:
+\end{definition}
+	\textbf{Key generation}. Takes as input a security parameter $\lambda$, the algorithm key generation outputs $(pk, rlk, sk) $ where $pk$ is the public key, $sk$ is the private key and $rlk$ is the public evaluation key. \newline
+	\textbf{Encryption}. The encryption algorithm $c \leftarrow \textbf{Enc}_{pk}{(m)}$ takes the public key $pk$, the message m $\in$ \{0,1\} and outputs a ciphertext c. \newline
+	\textbf{Decryption}. The decryption algorithm $m \leftarrow \textbf{Dec}_{sk}(c)$ takes the private key $sk$, the ciphertext c and outputs a message m $\in$ \{0,1\} . \newline
+	\textbf{Evaluation}. The evaluation algorithm $c_f \leftarrow \textbf{Eval}_{rlk}(f, c_1, c_2,..., c_l) $ takes the evaluation key $rlk$, a function $f: \{0,1\}^l$ $\leftarrow$ \{0,1\}, and a set of $l$ ciphertexts $c_1, c_2,..., c_l$. It outputs a ciphertext $c_f$. \newline
+	
+We note that we can treat the evaluation key as a part of the public key and the evaluation is correct if \textbf{Dec}(\textbf{Eval}($f, c_i, pk$), sk) = $f(m_i)$.
+
+%SHE definition
+
+%FHE definition
+
+
+
+\subsection{BFV scheme}
+	\subsubsection{Definition}
+In 2012, Fan and Vercauteren \cite{SHE} modified Brakerski's \cite{brakerskiFHE} fully homomorphic encryption scheme based on LWE to RLWE setting. Using RLWE encryption makes it possible to prevent modulus switching attack that can take in a leveled homomorphic encryption.
+
+The plaintext space in BFV is $R_t = \mathbb{Z}_t[x]/(x^n + 1)$, that is polynomials of degree less than $n$ with coefficients modulo $t$. The ciphertext space is $R_q = \mathbb{Z}_q[x]/(x^n + 1)$ where a ciphertext is presented by two polynomials modulus $n$ and a different coefficient modulus $q >> t$.
+
+Let $\lambda$ be the security parameter, $t > 1$ be an integer plaintext coefficient modulus, $q > t$ be an integer ciphertext coefficient polunomial modulus, $n$ be a degree with $n = 2^d$, $\Delta = \lfloor q/t \rfloor$, $T$ be a positive integer base that will generate to relinearization key, $l= \lfloor log_T(q) \rfloor$ be the number of terms in the decomposition into base $T$ of integer in base $q$. The definition of BFV as 7 functions follows \cite{SHE}: \newline
+\textbf{PrivateKeyGen($\lambda$)}. Takes as input the security parameter $\lambda$ and randomly sample $s \leftarrow R_2$ with $R_2$ represent the polynomial ring with coefficient modulo 2. It outputs a private key $sk=s$. \newline	
+\textbf{PublicKeyGen(sk)}. Takes as input the private key s=sk. Sample $a \leftarrow R_q$ and $e \leftarrow \chi$. The public key pk is the output as:
+	\begin{align*}
+	pk = ([-a\cdot s + e]_q, a)
+	\end{align*}	
+\textbf{Evaluation Key Generation}:
+	\begin{itemize}
+		\item \textbf{Version 1 (sk, T)}. Takes as input the private key sk and base T. Setting s=sk, for $i = \overline{0, l}  $, sample $a_i \leftarrow R_q$ and $e_i \leftarrow \chi$. The output is the evaluation key rlk as:
+		\begin{align*}
+		rlk = [([-(a_i \cdot s + e_i) + T^i \cdot s^2]_q , a_i) : i \in [0,l]]
+		\end{align*}
+		
+		\item \textbf{Version 2 (sk, p)}. Takes as input the private key sk and a coefficient modulus p. Setting s=sk, sample $a \leftarrow R_{p \cdot q})$ and $e \leftarrow \chi$'  and return:
+		\begin{align*}
+		rlk = ([-(a \cdot s + e) + p \cdot s^2]_{p \cdot q}, a).
+		\end{align*}
+		
+	\end{itemize}	
+\textbf{Encrypt(pk, m)}. Takes as input the public key pk and a message $m \in R_t$. Sample $u \leftarrow R_2$, $e_1, e_2 \leftarrow \chi$ and return:
+	\begin{align*}
+		ct = ([pk[0] \cdot u + e_1 + \Delta \cdot m]_q ,  [ pk[1] \cdot u + e_2]_q)
+	\end{align*}	
+\textbf{Decrypt(sk, c)}. Takes as input the private key sk and a ciphertext c. Setting s=sk and it outputs the message $m' \in R_t$ as:
+	\begin{align*}
+		m' = \left[ \left \lfloor \frac{t \cdot [c[0] + c[1] \cdot s]_q}{q} \right \rceil \right]_t
+	\end{align*}
+\textbf{Addition($c_1$, $c_2$)}. Takes as input ciphertexts $c_1, c_2$ and returns:
+	\begin{align*}
+		c_1 + c_2 = ([c_1[0] + c_2[0]]_q, [c_1[1] _+ c_2[1]]_q)
+	\end{align*}
+\textbf{Multiplication($c_1, c_2, rlk$)}. Takes as input ciphertexts $c_1, c_2$ and the evaluation key rlk. Compute
+	\begin{align*}
+		c_0 = \left [ \left \lfloor \frac{t \cdot (c_1[0] \cdot c_2[0])}{q} \right \rceil \right]_q    	
+	\end{align*}
+	\begin{align*}
+		c_1 = \left [ \left \lfloor \frac{t \cdot (c_1[0] \cdot c_2[1] + c_1[1] \cdot c_2[0])}{q} \right \rceil \right]_q
+	\end{align*}
+	\begin{align*}
+		c_2 = \left [ \left \lfloor \frac{t \cdot (c_1[1] \cdot c_2[1])}{q} \right \rceil \right]_q    	
+	\end{align*}
+	
+	\begin{itemize}
+		\item \textbf{Relinearization Version 1}. Write $c_2 = \Sigma_{i=0}^l c_2^{(i)}T^i$ with $c_2^{(i)} \in R_T$ and return ($c_0', c_1'$) as:
+		\begin{align*}
+			c_0' = \left [c_0 + \sum_{i=0}^{l}rlk[i][0] \cdot c_2^{(i)} \right]_q
+		\end{align*} 
+		\begin{align*}
+			c_1' = \left [c_1 + \sum_{i=0}^{l}rlk[i][1] \cdot c_2^{(i)} \right]_q
+		\end{align*}
+		\item \textbf{Relinearization Version 2}. Return ($[c_0 + c_{2,0}]_q$, $[c_1 + c_{2,1}]_q$) as:
+		\begin{align*}
+		c_{2,0} = \left [ \left \lfloor \frac{c_2 \cdot rlk[0]}{p} \right \rceil \right]_q
+		\end{align*} 
+		\begin{align*}
+		c_{2,1} = \left [ \left \lfloor \frac{c_2 \cdot rlk[1]}{p} \right \rceil \right]_q
+		\end{align*}
+	\end{itemize}
+
+The decryption is correct if and only if the following lemma
+\begin{lemma}
+	We have that 
+	\begin{equation}
+		\begin{aligned}
+		&[ct(s)]_q = \Delta \cdot m + v
+		\end{aligned}
+	\end{equation}
+	 
+	with $||v|| \leq 2 \cdot \delta_R \cdot B_2 + B < \Delta / 2$, then decrypts correctly. \cite{SHE}
+\end{lemma}
+
+Indeed
+\begin{equation*}
+\begin{aligned}
+&[ct(s)]_q = [c_0 + c_1  \cdot s]_q \\
+&= [p_0 \cdot u + e_1 + \Delta \cdot m + p_1 \cdot u \cdot s + e_2 \cdot s]_q \\
+&= [\Delta \cdot m + (p_0 + p_1 \cdot s) \cdot u + e_1 + e_2 \cdot s]_q \\
+&= [\Delta \cdot m + (-(a \cdot s + e) + a \cdot s) \cdot u + e_1 + e_2 \cdot s]_q \\
+&= [\Delta \cdot m + e \cdot u + e_1 + e_2 \cdot s]_q \\
+&= \Delta \cdot m + v
+\end{aligned}
+\end{equation*}
+with $v = e \cdot u + e_1 + e_2 \cdot s $.
+	\subsubsection{Addition}
+
+Takes two ciphertexts $ct_1, ct_2$ with $[ct_i(s)]_q = \Delta \cdot m_i + v_i$ for i = 1,2, then 
+\begin{equation*}
+[ct_1(s)]_q + [ct_2(s)]_q = \Delta \cdot (m_1 + m_2) + v_1 + v_2 
+\end{equation*}	
+
+Note that $m_1 + m_2 = [m_1 + m_2]_t + t \cdot r$, for some binary polynomial r. Using $r_t(q) = q - \Delta \cdot t = q \pmod t$ . 
+We have
+\begin{equation*}
+\begin{aligned}
+	&[ct_1(s)]_q + [ct_2(s)]_q = \Delta \cdot [m_1 + m_2]_q + \Delta \cdot t \cdot r + v_1 + v_2\\
+	&= \Delta \cdot [m_1 + m_2]_q + (q - r_t(q)) \cdot r + v_1 + v_2\\
+	&= \Delta \cdot [m_1 + m_2]_q + q \cdot r - r_t(q) \cdot r + v_1 + v_2\\
+	&= \Delta \cdot [m_1 + m_2]_q + v_{add} \pmod q
+\end{aligned}
+\end{equation*}
+with $v_{add} = v_1 + v_2 - r_t(q) \cdot r$
+
+Thus we can define addition between two ciphertexts as:
+\begin{equation*}
+ct = ct_1 + ct_2 = (ct_1[0] + ct_2[0], ct_1[1] + ct_2[1])
+\end{equation*}
+
+The additional noise grows quite slow since $||v_{add}|| < ||v_1|| + ||v_2|| + t < 2B + t$ for B is an upper bound on the ciphertexts. Therefore, 	$ct = ct_1 + ct_2$ decrypts to the sum $[m_1 + m_2]_t$ with $v_{add} < \Delta / 2$. 
+	\subsubsection{Multiplication}
+Homomorphic multiplication include of two steps: the first step is basic multiplication that multiply the polynomials $ct_1(x)$ and $ct_2(x)$ then scale by $t/q$. The second step called "relinearzation". \newline
+\textbf{Basic Multiplication}
+Multiplication works like addition:
+\begin{equation*}
+ct_1(s) \cdot ct_2(s) = \Delta^2 \cdot m_1 \cdot m_2 + \Delta \cdot ( m_1v_2 + m_2v_1) + v_1v_2
+\end{equation*}
+If we scale by $t/q$ to remove $\Delta$, it becames:
+\begin{equation*}
+\frac{t}{q} \cdot ct_1(s) \cdot ct_2(s) \approx \Delta \cdot m_1 \cdot m_2 +( m_1v_2 + m_2v_1)
+\end{equation*}
+Keep in mind that we work with plaintexts modulo t, $m_1, m_2 \in R_t$ and take $m_1m_2 \in R_t$. Write $m_1m_2 = [m_1m_2]_t + t \cdot r_m$ where $r_m$ is an integer polynomial.
+We end up with:
+\begin{equation}\label{eq:mul1}
+\begin{aligned}
+\frac{t}{q} \cdot ct_1(s) \cdot ct_2(s) &\approx \Delta \cdot m_1 \cdot m_2 +( m_1v_2 + m_2v_1)\\
+&= \Delta \cdot ([m_1m_2]_t + t \cdot r_m) + (m_1v_2 + m_2v_1)\\
+&= \Delta \cdot [m_1m_2]_t + \Delta \cdot t \cdot r_m + (m_1v_2 + m_2v_1)\\
+&= \Delta \cdot [m_1m_2]_t + (q - r_t(q))\cdot r_m + (m_1v_2 + m_2v_1)\\
+&= \Delta \cdot [m_1m_2]_t + q \cdot r_m - r_t(q) \cdot r_m + (m_1v_2 + m_2v_1)\\
+\end{aligned}
+\end{equation}
+
+Recall $ct_1(s) = ct_1[0] + ct_1[1] \cdot s$ and $ct_2(s) = ct_2[0] + ct_2[1] \cdot s$. Their multiplication is quadratic in s:
+\begin{equation*}
+	ct_1 \cdot ct_2(s) = ct_1[0] \cdot ct_2[0] + (ct_1[0] \cdot ct_2[1] + ct_1[1] \cdot ct_2[0])s + ct_1[1] \cdot ct_2[1]s^2
+\end{equation*}
+or in short
+\begin{equation*}
+ct_1 \cdot ct_2(s) = c_0 + c_1 \cdot s + c_2 \cdot s^2
+\end{equation*}
+We continue to scale the above equation by $t/q$:
+\begin{equation}\label{eq:mul2}
+\frac{t}{q} \cdot ct_1 \cdot ct_2(s) = \frac{t}{q} \cdot c_0 + \frac{t}{q} \cdot c_1 \cdot s + \frac{t}{q} \cdot c_2 \cdot s^2
+\end{equation}
+From (\ref{eq:mul1}) and (\ref{eq:mul2}), we get:
+\begin{equation*}
+	\frac{t}{q} \cdot c_0 + \frac{t}{q} \cdot c_1 \cdot s + \frac{t}{q} \cdot c_2 \cdot s^2 = 
+	\Delta \cdot [m_1m_2]_t + q \cdot r_m - r_t(q) \cdot r_m + (m_1v_2 + m_2v_1)
+\end{equation*}
+We round each coefficient in the left hand side to their nearest integers and then reduce the whole equation to modulo q:
+\begin{equation}\label{eq:mul3}
+	[\lfloor \frac{t}{q} \cdot c_0 \rceil  +  \lfloor \frac{t}{q} \cdot c_1 \rceil  \cdot s + 	\lfloor \frac{t}{q} \cdot c_2 \rceil   \cdot s^2]_q = 
+	[\Delta \cdot [m_1m_2]_t - r_t(q) \cdot r_m + (m_1v_2 + m_2v_1)]_q
+\end{equation}
+It is possible to bound the size of the noise in the right hand side by following the lemma \cite{SHE}.
+
+\begin{lemma}
+Let $ct_i$ for i = 1,2 be two ciphertexts, $[ct_i(s)]_q = \Delta \cdot m_i + v_i$, $||v_i|| < B < \Delta / 2$, and $ct_1(s) \cdot ct_2(s) = c_0 + c_1 \cdot s + c_2 \cdot s^2$, then
+\begin{equation*}
+	[\lfloor \frac{t}{q} \cdot c_0 \rceil  +  \lfloor \frac{t}{q} \cdot c_1 \rceil  \cdot s + 	\lfloor \frac{t}{q} \cdot c_2 \rceil   \cdot s^2]_q = \Delta \cdot [m_1m_2]_t + v_{mul}
+\end{equation*}
+with $||v_{mul}|| < 2 \cdot \delta_R \cdot t \cdot B \cdot(\delta_R \cdot ||s|| + 1) + 2 \cdot t^2 \cdot \delta_R^2 \cdot (||s|| + 1)^2$.
+\end{lemma}
+Therefore, (\ref{eq:mul3}) becomes:
+\begin{equation}\label{eq:mul}
+[\lfloor \frac{t}{q} \cdot c_0 \rceil  +  \lfloor \frac{t}{q} \cdot c_1 \rceil  \cdot s + 	\lfloor \frac{t}{q} \cdot c_2 \rceil   \cdot s^2]_q = \Delta \cdot [m_1m_2]_t + v_{mul}
+\end{equation} 
+with the noise growth for multiplication grows a lot faster: $v_{mul} = [- r_t(q) \cdot r_m + (m_1v_2 + m_2v_1)]_q < 2 \cdot \delta_R \cdot t \cdot B \cdot(\delta_R \cdot ||s|| + 1) + 2 \cdot t^2 \cdot \delta_R^2 \cdot (||s|| + 1)^2$. For correct decryption, $v_{mul}$ is an integer polynomial that should have small enough coefficients. Remember that $s \rightarrow R_2$ so $||s|| \leq 1$. Thus
+\begin{equation*}
+	||v_{mul}|| \leq 2 \cdot \delta_R \cdot t \cdot B  \cdot (\delta_R + 1) + 8t^2 \cdot \delta_R^2
+\end{equation*} 
+This condition will significantly limit the growth of the noise during one multiplication.
+
+However, the product of two ciphertexts has size 3, not 2 as the usual ciphertext. Furthermore, the size of such tuple will grow linearly in the number of multiplications executed on the ciphertexts. In order to reshape the size of the cipherter to 2, we will perform the function called "relinearization".
+	\subsubsection{Relinearisation}
+Relinearization is to reduce the product of two ciphertexts by triple ($c_0, c_1, c_2$) to a ciphertext pair $(c_0', c_1') \in R_q \times R_q$ which decrypt to $[mm']_t$. Let $ct = [c_0, c_1, c_2]$ be a degree 2 ciphertext, we would like to create $ct' = [c_0', c_q']$ such that:
+\begin{equation*}
+	[c_0 + c_1 \cdot s + c_2 \cdot s^2]_q = [ c_0' + c_1' \cdot s + r]_q
+\end{equation*}
+where r is "small" error ($||r||$ is small).
+
+Without using the secret key s, $s^2$ is not known. So it would be to provide a masked version of $s^2$, called relinearization key $rlk$ as follows: sample $a_0 \leftarrow R_q, e_0 \leftarrow \chi$ and $rlk = ([ -(a_0 \cdot s + e_0) + s^2]_q, a_0)$. \newline
+
+Using this type of key, we can linearize $c_2 \cdot s^2$ as:
+\begin{equation*}
+	[c_{20} + c_{21} \cdot s]_q = [c_2 \cdot s^2 + e_{relin}]_q
+\end{equation*}
+
+Thus, by (\ref{eq:mul}) we get:
+\begin{equation*}
+	c_{mul} = (c_0 + c_{20}, c_1 + c_{21})
+\end{equation*}
+\begin{equation*}
+	[c_0 + c_{20} + (c_1 + c_{21}) \cdot s]_q = [c_0 + c_1 \cdot s + c_2 \cdot s^2 + e_{relin}]_q = \Delta \cdot [m_1m_2]_t + v_{mult}
+\end{equation*}
+where $v_{mult} = v_{mul} + e_{relin}$. \\
+ Therefore, if $||v_{mult}|| < \Delta / 2$ or $||v_{mul}|| + ||e_{relin}|| \leq \Delta / 2$ then it decrypts correctly to $[m_1m_2]_t$.
+
+Note that $rlk[0] + rlk[1] \cdot s = s^2 + e_0$. So to get the approximation of $c_2 \cdot s^2$, we multiply with $c_2$. This leads to a large $c_2 \cdot e$, due to the size of the coefficients of $c_2$. It would be decrypt fail as "noise" speeds up. To avoid this, we have two techniques of relinearization as below.
+
+\textbf{Version 1} We slice $c_2$ into parts of small norm by picking a base $T$ and write each coefficient of $c_@$ in base $T$. Recall that $c_2$ is an integer polynomial modulo ($x^n + 1$), so the highest degree is $n - 1$. The polynomial $c_2$:
+\begin{equation*} 
+	c_2(x) = c_2^{(0)} + c_2^{(1)} \cdot x + ... + c_2^{(n - 1)} \cdot x^{n - 1}
+\end{equation*}
+
+After decomposing each coefficient $c_2^{(i)}$ in base $T$, $c_2^{(i)} \in R_T$
+\begin{equation*}
+	c_2 = \sum_{i = 0}^{l}T_i \cdot c_2^{(i)} \pmod q,  l = \lfloor log_T(q) \rfloor
+\end{equation*}
+
+The relinearization key $rlk$ consists of masked variants of $T^i \cdot s^2$, insteads of $s^2$ for i = 0,...,l, $a_i \leftarrow R_q$ and $e_i \leftarrow \chi$:
+\begin{equation*}
+	rlk = (rlk[i][0], rlk[i][0]) = ([- (a_i \cdot s + e_i) + T^i \cdot s^2]_q, a_i)
+\end{equation*}
+
+Now, we set:
+\begin{equation*}
+	c_{20} = \sum_{i=0}^{l}rlk[i][0] \cdot c_2^{(i)}
+\end{equation*}
+\begin{equation*}
+	c_{21} = \sum_{i=0}^{l}rlk[i][1] \cdot c_2^{(i)}
+\end{equation*}
+then
+\begin{equation*}
+	\begin{aligned}
+	c_{20} + c_{21} \cdot s &= \sum_{i=0}^{l}[-(a_i \cdot s + e_i) + T^i \cdot s^2]c_2^{(i)} + \sum_{i=0}^{l}a_i \cdot s \cdot c_2^{(i)}\\
+	&= c_2 \cdot s^2 - \sum_{i=0}^{l}e_i \cdot c_2^{(i)}
+	\end{aligned}
+\end{equation*}
+Therefore, $c_{21} + c_{21} \cdot s = c_2 \cdot s^2 + e_{relin}$ with $e_{relin} = \sum_{i=0}^{l}e_i \cdot c_2^{(i)}$ is an error term from $R_q$. Notice that $||e_{relin}|| \leq (l+1) \cdot B \cdot T \cdot \delta_R/2$ where $B$ is an upper bound on the errors $e_i$.
+
+The noise in relinearization is completely independent of the noise in the ciphertext which grow rapidly after a multiplication.While the size of the evaluation key is given by $l + 1 \approxeq log_T(q)$ and larger $T$ is smaller $rlk$, the relinearization noise depends on $T$ by $(l+1) \cdot B \cdot T \cdot \delta_R/2$, so the greater $T$ causes more noise. To make sure that the decryption is successful, we should choose base $T$ satisfy at least as large in order to the size of relinearization error is similar to the ciphertext error after one multiplication. This technique will minimize the relinearization error.
+
+\textbf{Version 2}
+The second solution uses the technique called "modulus switching". In version 1, when we get a versions of masked $s^2$ by multiplying $c_2$, then there is a huge error in $e_{relin}$. To avoid that, instead of working modulo $q$, we mask $s^2$ with a different modulus $p \cdot q$ for some integer $p >> q$.
+\begin{equation*}
+	rlk = ([-(a' \cdot s + e') + p \cdot s^2]_{p \cdot q}, a)
+\end{equation*}
+with $a' \in R_{p \cdot q}, e' \leftarrow \chi'$. For security reasons, the distribution $\chi$' should be distinct from $\chi$ \cite{SHE}.
+
+The linear approximation of $[c_2 \cdot s^2]_q$ can be computed:
+\begin{equation*}
+	(c_{20}, c_{21}) = \left( \left [ \left \lfloor  \frac{c_2 \cdot rlk[0]}{p}\right \rceil \right ]_q, \left [ \left \lfloor  \frac{c_2 \cdot rlk[1]}{p}\right \rceil \right ]_q \right)
+\end{equation*}
+
+From this, we compute:
+\begin{equation*}
+	\begin{aligned}
+	\frac{c_2 \cdot rlk[0]}{p} + 	\frac{c_2 \cdot rlk[1]}{p} \cdot s &= \frac{c_2 \cdot [-(a' \cdot s + e') + p \cdot s^2]_{p \cdot q} + c_2 \cdot a' \cdot s}{p}\\
+	&= c_2 \cdot s^2 + \frac{p \cdot q \cdot K - c_2 \cdot e'}{p}
+	\end{aligned}
+\end{equation*}
+where $K \in R$ such that $[-(a' \cdot s + e') + p \cdot s^2]_{p \cdot q} = -(a' \cdot s + e') + p \cdot s^2 + pq \cdot K$.
+Then, $c_{20} + c_{21} \cdot s = c_2 \cdot s^2 + e_{relin2}$ with $e_{relin2} = \frac{p \cdot q \cdot K - c_2 \cdot e'}{p}$ and $||e_{relin2} || < \frac{q \cdot B_k \cdot \delta_R}{p} + \frac{\delta_R \cdot ||s|| + 1}{2}$ or $||e_{relin2} || < \frac{q \cdot B_k \cdot \delta_R}{p} + \frac{\delta_R + 1}{2}$ ($||s|| = 1$) with real $k > 0: p \cdot q = q^k, ||\chi|| < B$ and $||\chi'|| = B_k$. \newline
+
+\textbf{Comparison two versions of relinearization}
+
+
+
+\begin{table}[ht] 
+	%\caption{} % title of Table 
+	\label{tab:tbCmpRLK1}
+	\centering      % used for centering table 
+	\begin{tabular}{c c c}  % centered columns (4 columns) 
+		\hline\hline                        %inserts double horizontal lines 
+		Relinearization & Size of rlk (bits) & Bound of $e_{relin}$ \\ [0.5ex] % inserts table 
+		%heading 
+		\hline   \\          % inserts single horizontal line 
+		Version 1 & $2(l + 1) \cdot \delta_R \cdot log_T(q)$ & $(l + 1) \cdot B \cdot T \cdot \delta_R / 2$  \\   % inserting body of the table 
+		\hline \\ 
+		Version 2 & $2 \cdot \delta_R \cdot log(p \cdot q) $ &  $\frac{q \cdot B_k \cdot \delta_R}{p} + \frac{\delta_R + 1}{2}$ \\ [1ex]       % [1ex] adds vertical space 
+	
+		\hline     %inserts single line 
+	\end{tabular} 
+	\label{table:nonlin}  % is used to refer this table in the text 
+\end{table}
+
+\begin{table}[ht] 
+	%\caption{} % title of Table 
+	\label{tab:tbCmpRLK2}
+	\centering      % used for centering table 
+	\begin{tabular}{|c|c|c|c|}  % centered columns (4 columns) 
+		\hline                      %inserts double horizontal lines 
+		Relinearization & $T$ & Noise & rlk \\ [0.5ex] % inserts table 
+		%heading 
+		\hline            % inserts single horizontal line 
+		Version 1 & larger $T$ & larger noise & smaller rlk \\   % inserting body of the table 
+		\hline 
+		Version 2 & larger $p$ & smaller noise & larger rlk \\ [1ex]       % [1ex] adds vertical space 
+		
+		\hline     %inserts single line 
+	\end{tabular} 
+	\label{table:nonlin}  % is used to refer this table in the text 
+\end{table}
+
+\subsection{Security}
+
+
+\section{Neural Network}
+
+There are severals common functions can be used in neural network. 
+\begin{itemize}
+	\item Convolution layer
+	\item Dense layer: $x \mapsto \omega \cdot x + b$
+	\item Rectified linear (ReLu): $x \mapsto max(0, x)$
+	\item Sigmoid: $x \mapsto \frac{1}{1 + exp(-x)}$
+\end{itemize}
+
+Since homomorphic encryption supports only additions and multiplications in polynomials, only polynomial functions can be computed in a direct way. Furthermore, the increased complexity in multiplications leads to desire to restrict the computation to low-degree polynomials.
+
+Focus on Convolution and Dense layer, there can be straightforward implemented since they use only additions and multiplications between precomputed weights and the encrypted values. Because of the weights are not encrypted, we just only implement the plain multiplication operation (see Plain operations) between the encoded weights and the encrypted values, but also implement simply plain addition operation between the value of the feeding layer and the bias term.
+
+The sigmoid and the rectified linear activation functions are non-polynomial functions. So we have to tranfer these activation functions to non-linear polynomial functions. There was an original solution to approximate these functions with low-degree polynomials, for instance $sigmoid \approx 0.5 + 0.197x - 0.004x^3$ \cite{appro_sigmoid}. But here we approach in a different way. We make efford to control the trade-off between having a non-linear transformation, which is necessary for the neural network algorithm, and the need to keep the degree of the polynomials small, to make the homomorphic encryption parameters feasible. Therefore, we choose to use the lowest-degree non-linear polynomial function, which is the square function: $sqr(x) = x^2$ (\cite{replace_relu}, \cite{replace_activate}).
+
+In order to optimize our approach, we omit the sigmoid activation functions within the classifier. Because of sogmoid function is mostly required at training phase, to normalize network outputs probablitity distribution, for more consitent loss calculations, this function does not have any influence on the classification results.
+
+In conclusion, we should replace the activation functions to polynomial functions to make a network compatible with homomorphic encryption.
+
+\section{Experiments}
+\subsection{Practical consideration}
+
+	\subsubsection{Plain operations}
+	
+Let $c = \Delta \cdot m + v$ be the encrypted message and $\omega$ be the known constant. Addition between the encrypted message $c$ and the constant $\omega$ as following: 
+\begin{equation*}
+	Add(c, \omega) = c + \Delta \cdot \omega = \Delta \cdot m + v + \Delta \cdot \omega = \Delta \cdot (m + \omega) + v
+\end{equation*}
+
+For multiplication, we just multiply the encrypted message by the constant $\omega$:
+\begin{equation*}
+	Mul(c, \omega) = c \cdot \omega = \Delta \cdot m \cdot \omega + v
+\end{equation*}
+
+If $\omega$ is a scalar then it is favourable to compute in linear time in the degree ($n - 1$) of $c$.
+
+	\subsubsection{Convert data type and Encoding}
+As mentioned, Neural network works with floating-point numbers (real numbers), while homomorphic encryption schemes does on polynomials in $R_t^n$. So, there is an incompatibility of data types between them. It is necessary to convert from real numbers inputs of Neural network applications to elements of polynomials who coefficients are integers modulo $t$. An encoder is responsible for this value by mapping one to the other and this process called encoding.
+
+The simlest encoder is \textit{scalar encoder}. We will multiply by the fixed precision numbers, rounding and then reduction modulo $t$. But the problem is the coefficients of the plaintext polynomials go beyond $t$ and after encoding, decryption might yield an unexpected result. This forces us to choose large values for $t$, which causes the noise to grow rapidly in the ciphertexts and reduce the noise budget (see Parameters selection).
+
+The possible solution is using Chinese Remainder Theorem. Beside that, in this project, we chose precision = 10 on the inputs and weights of the network were sufficient in maintaining the accuracy of the neural network and all the numbers computed were smaller than $2^{80}$.
+
+	\subsubsection{Chinese Remainder Theorem}
+	
+The Chinese Remainder Theorem (CRT)\cite{report} is used for splitting down the parameter $t$ into a set of numbers $t_j$ such that their multiplication gives the desired $t$. What I mean by this is that using two or more relatively prime plaintext modulo $t_1, ..., t_k$. Given a polynomial $\sum a_i x_i$, we can transform to k polynomials that the j-th polynomial is $\sum [a_i \pmod {t_j}]x^i$. Each polynomial is encrypted and computed independently, then CRT make sure to decode back the result and their coefficients do not go beyond $t = \prod {t_j}$. Thus, encoding exponentially large numbers can be executed in increasing time and space linearly with $k$ primes used. It is important to notice that $t_j$ chosen must be prime numbers, $t_j = 1 \pmod {2n}$ and pairwise coprime in order to use CRT.
+	
+
+	\subsubsection{Parameters selection}
+The main parameters in this cryptosystem are the plaintext modulus $t$, the coefficient modulus $q$ and the degree n of the polynomial modulus $(x^n + 1)$.
+
+Using a huge $t$ prevents the coefficients of the plaintext polynomials from overflowing $t$ at any point during the computation that causes decryption fail (means all coefficients of the plaintext polynomials must be less than $t$). But this also leads to the noise grow more rapidly in the ciphertexts and decreases the noise budget. If chosen smaller $t$, the coefficients of the plaintext polynomials will smaller too. This makes computation quicker and optimizes the performance. Using CRT batching in order to break down $t$ to the product of primes $t_i$ can get around this issue. The primes $t_i$ small enough to aim the computations quicker and small enough as respective with $q$ to compute in Neural Network without too big noise. And this guarantees $t = \prod t_i$ large enough ($t > 2^{80}$) so that homomorphic encryption is feasible. In this project, we factorize $t$ into 5 primes $t_i$ so that their product $t = \prod_{i=0}^{4}t_i$ is greater than $t^{80}$ and for every $i = 0,1,2,3,4$, $t_i$ is a prime numbers, equal to 1 $\pmod {2n}$, coprime each other as required by CRT batching.
+
+Similar to $t$, more complex computations require larger ciphertext moduli $q$ to avoid overflow or noise issues. Using a large $q$ can get rid of giving coeffients in the ciphertext many times larger than modulo $q$. Thus, the larger $q$ causes the smaller amount of noise added. while the time to evaluate homomorphic operations, for a given polynomial degree n, is roughly proportional to $q$, a smaller $q$ also gives higher security. Therefore, we desire to select the smallest $q$ but large enough that still correctly decrypts the result. In our project, we also apply CRT batching with $q$ to break down the parameter $q$ into various divisors $q_j$ as $j = 0,1,2,3$ that the multiplication of them is $q = q_0 \cdot q_1 \cdot q_2 \cdot q_3$ and all $q_j$ have maximum 60 bits. For details, all $q_j$ are between 55 and 60 bits, whose product gives a 230 bit number and slightly larger enough in order to  decrease noise in the homomorphic algorithm.
+
+Smaller $n$, the reing dimension, imply better speed, while in order to support scaling operations $n$ need to be sufficiently large. \cite{npowe2_1}, \cite{npowe2_2} proved security results for certain choices of the polynomial modulus other than $x^n + 1$ for $n$ a power of 2 ($n = 2^d$). In this project, we choose $d = 12$ so $n = 2^{12} = 4096$.
+
+	\subsubsection{Negative numbers}
+
+A last consideration is that negative numbers. In the original neural network, because of the addition and multiplication are presented in float-point numbers, the result of the computation may be negative numbers. On the other hand, in homomorphic implementation, the data manipulated by the neural network are reduced modulo $t$, even the ciphtertext modulo $q$. This can be a problem that in the final layer there are negative numbers, which are once reduced modulo $t$, become positive integer between 0 and $t$. In the output neurons, the prediction is based on the class having the highest value among them. Therefore, it is possible to get the wrong prediction that would have been negative and not chosen, is chosen.
+
+Keep in mind that given a negative number $-a$, its reduction modulo $t$ is equal to $t - a$. Hence, the strategy to avoid negative problem is to devide the set [\,0, t)\, into two parts: 
+
+The first part [\,0, t/2]\, consists of only the positive numbers, while the other part (\,t/2, t)\, contains only negative numbers. This allows no number during the computation of the neural network, taken as an absolute value, exceeds half of $t$: $\forall n, |n| \leq t/2$. Here is the Pseudocode:\\
+\begin{lstlisting}	{python}
+negative_threshold = t/2
+if a > negative_threshold:
+	a = a - t
+\end{lstlisting}
+
+
+\subsection{Implementation}
+
+\section{Result}
+
+\section{Conclusion}
+
+\section{Future work}
+
+\newpage
+\begin{thebibliography}{99}
+	\bibitem{HEdefinition}
+	%https://dspace.mit.edu/bitstream/handle/1721.1/115488/120868669.pdf?sequence=1&isAllowed=y
+	
+	
+	\bibitem{brakerskiFHE}
+	%Z. Brakerski. Fully Homomorphic Encryption without Modulus Switching from Clas-
+	sical GapSVP. Cryptology ePrint Archive, Report 2012/078. https : / / eprint .
+	iacr.org/2012/078. 2012.
+	
+	\bibitem{SHE}
+	%somewhat
+	
+	\bibitem{appro_sigmoid}
+	
+	\bibitem{replace_relu}
+	
+	\bibitem{replace_activate}
+	
+	\bibitem{report}
+	%report CryptoNets
+	
+	\bibitem{npowe2_1}
+	%Zvika Brakerski, Craig Gentry, and Vinod Vaikuntanathan. (Leveled) fully homomorphic encryption
+	without bootstrapping. In Proceedings of the 3rd Innovations in Theoretical Computer Science Conference,
+	pages 309–325. ACM, 2012.
+	
+	\bibitem{npowe2_2}
+	%Vadim Lyubashevsky, Chris Peikert, and Oded Regev. On ideal lattices and learning with errors over
+	rings. In Henri Gilbert, editor, Advances in Cryptology - EUROCRYPT 2010, 29th Annual International
+	Conference on the Theory and Applications of Cryptographic Techniques, French Riviera, May 30 - June
+	3, 2010. Proceedings, volume 6110 of Lecture Notes in Computer Science, pages 1–23. Springer, 2010.
+	
+	
+\end{thebibliography}
+
+\end{document}
