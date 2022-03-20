@@ -1,13 +1,15 @@
 SERVER: run only one time
 nn = NeuralNetwork()
-nn.get_parameters()
 
 Client:
 #User Sign up: 
 user = Client(user_id)
 user.generate_keys()
 
-#Enter sample:
+#Get SEALobj
+SealObj = user.get_SEAL_obj()
+
+#Enter sample: 
 user.receive_sample(sample_data) 
 
 #Encode sample:
@@ -21,7 +23,7 @@ encrypted_sample = user.encrypt_sample(encoded_sample)
 
 SERVER: after receiving encrypted_sample from client
 
-predict = nn.predict(encrypted_sample)
+output = nn.predict(SealObj, encrypted_sample)
 
 
 >>>Send predict to client
@@ -29,10 +31,10 @@ predict = nn.predict(encrypted_sample)
 CLIENT: after receiving predict from server
 
 #Decrypt
-decrypted = user.decrypt_sample(predict)
+decrypted = user.decrypt_sample(output)
 
 #Decode
-decoded = crt_inverse(decrypted)
+predict = crt_inverse(decrypted)
 
 #Get result
 user.result = np.argmax(predict, axis=1)
